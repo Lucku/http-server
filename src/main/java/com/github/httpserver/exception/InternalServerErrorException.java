@@ -8,11 +8,6 @@ public class InternalServerErrorException extends HttpException {
 
     private final HttpStatus status = HttpStatus.HTTP_INTERNAL_SERVER_ERROR;
 
-    // TODO: Check if necessary
-    public InternalServerErrorException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
     public InternalServerErrorException(Throwable cause) {
         super(cause);
     }
@@ -24,9 +19,10 @@ public class InternalServerErrorException extends HttpException {
 
     @Override
     public HttpResponse toHttpResponse() {
-        HttpResponseBuilder responseBuilder = new HttpResponseBuilder();
-        responseBuilder.setStatus(status);
-        responseBuilder.appendBodyAsHTML("h1", status.toString());
-        return responseBuilder.build();
+        return new HttpResponseBuilder()
+                .setStatus(status)
+                .appendBodyAsHTML("h1", status.toString())
+                .appendContentLengthHeader()
+                .build();
     }
 }

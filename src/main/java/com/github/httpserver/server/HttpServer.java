@@ -71,8 +71,6 @@ public class HttpServer {
                             if (selectionKey.isAcceptable()) {
                                 SocketChannel clientSocket = serverSocketChannel.accept();
                                 clientSocket.configureBlocking(false);
-                                // TODO This is a test, hat scheinbar keine Auswirkungen
-                                clientSocket.socket().setKeepAlive(true);
                                 clientHandler.acceptClient(clientSocket);
                                 clientSocket.register(selector, SelectionKey.OP_READ);
 

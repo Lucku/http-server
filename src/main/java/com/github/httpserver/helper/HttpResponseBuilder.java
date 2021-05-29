@@ -5,7 +5,6 @@ import com.github.httpserver.protocol.HttpResponse;
 import com.github.httpserver.protocol.HttpStatus;
 import org.tinylog.Logger;
 
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +16,7 @@ public class HttpResponseBuilder {
     private String version;
     private HttpStatus status;
     private Map<String, String> headers;
-    private String body;
+    private byte[] body;
 
     public HttpResponseBuilder() {
         this.version = HTTP_VERSION;
@@ -46,40 +45,49 @@ public class HttpResponseBuilder {
         return this;
     }
 
-    public HttpResponseBuilder appendBody(String body) {
+    public HttpResponseBuilder setBody(byte[] body) {
+        this.body = body;
+        return this;
+    }
 
-        if (body == null) {
-            return this;
+    public HttpResponseBuilder appendTextBody(String text) {
+
+        StringBuilder textBuilder = new StringBuilder();
+
+        if (this.body != null) {
+            textBuilder.append(new String(body));
         }
 
-        if (this.body == null) {
-            this.body = body + "\r\n";
-        } else {
-            this.body += body;
-        }
+        textBuilder.append(text);
+        textBuilder.append("\r\n");
+
+        this.body = textBuilder.toString().getBytes();
 
         return this;
     }
 
     public HttpResponseBuilder appendBodyAsHTML(String tag, String text) {
         String htmlText = String.format("<%1$s>%2$s</%1$s>", tag, text);
-        return appendBody(htmlText);
+        return appendTextBody(htmlText);
     }
 
     public HttpResponseBuilder appendContentLengthHeader() {
+
+        int contentLength = 0;
+
         if (this.body != null) {
-            headers.put(HttpHeader.HEADER_CONTENT_LENGTH, String.valueOf(body.length()));
-        } else {
-            Logger.debug("No HTTP body set for response - not setting Content-Length header");
+            contentLength = body.length;
         }
+
+        headers.put(HttpHeader.HEADER_CONTENT_LENGTH, String.valueOf(contentLength));
 
         return this;
     }
 
     public HttpResponseBuilder appendETagHeader() {
+
         if (this.body != null) {
 
-            MessageDigest messageDigest = null;
             try {
                 String eTag = HttpUtils.calculateETag(body);
                 headers.put(HttpHeader.HEADER_ETAG, eTag);

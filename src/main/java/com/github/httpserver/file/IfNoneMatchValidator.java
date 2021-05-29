@@ -27,11 +27,11 @@ public class IfNoneMatchValidator implements FileValidator {
 
         String fileETag;
         try {
-            String fileContents = Files.readString(filePath);
+            byte[] fileContents = Files.readAllBytes(filePath);
             fileETag = HttpUtils.calculateETag(fileContents);
         } catch (IOException | NoSuchAlgorithmException e) {
-            Logger.warn("Failed to calculate ETag of file {} while validating If-None-Match header",
-                    filePath, e);
+            Logger.warn(e, "Failed to calculate ETag of file {} while validating If-None-Match header",
+                    filePath);
             throw new IOException(e);
         }
 

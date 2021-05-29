@@ -9,6 +9,10 @@ public final class HttpHeader {
     public static final String HEADER_IF_MODIFIED_SINCE = "If-Modified-Since";
     public static final String HEADER_IF_MATCH = "If-Match";
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
+    public static final String HEADER_CONNECTION = "Connection";
+
+    public static final String CONNECTION_KEEP_ALIVE = "keep-alive";
+    public static final String CONNECTION_CLOSE = "close";
 
     private HttpHeader() {
     }

@@ -4,9 +4,10 @@ import com.github.httpserver.configuration.Configuration;
 import com.github.httpserver.exception.HttpException;
 import com.github.httpserver.handler.HttpRequestHandler;
 import com.github.httpserver.handler.HttpRequestHandlerFactory;
+import com.github.httpserver.helper.HttpRequestParser;
 import com.github.httpserver.protocol.HttpContext;
+import com.github.httpserver.protocol.HttpHeader;
 import com.github.httpserver.protocol.HttpRequest;
-import com.github.httpserver.protocol.HttpRequestParser;
 import com.github.httpserver.protocol.HttpResponse;
 import org.tinylog.Logger;
 
@@ -15,8 +16,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,6 +58,7 @@ class HttpClientHandler implements ClientHandler {
         try {
             HttpRequest request = requestParser.parseRequest(readBuffer.array());
             context.setRequest(request);
+            Logger.debug("Received {} request at path {}", request.getMethod(), request.getPath());
         } catch (HttpException e) {
             context.setResponse(e.toHttpResponse());
         }
@@ -82,35 +82,25 @@ class HttpClientHandler implements ClientHandler {
             }
         }
 
-        String responseContent = context.getResponse().toString();
+        // set connection header based on client request
+        if (context.isPersistentConnection()) {
+            context.getResponse().getHeaders().put(HttpHeader.HEADER_CONNECTION, HttpHeader.CONNECTION_KEEP_ALIVE);
+        } else {
+            context.getResponse().getHeaders().put(HttpHeader.HEADER_CONNECTION, HttpHeader.CONNECTION_CLOSE);
+        }
 
-        ByteBuffer writeBuffer = ByteBuffer.wrap(responseContent.getBytes());
-        client.write(writeBuffer);
+        ByteBuffer writeBuffer = context.getResponse().toByteBuffer();
+        while (writeBuffer.hasRemaining()) {
+            client.write(writeBuffer);
+        }
+        Logger.debug("Responded request at path {} with {}", context.getRequest().getPath(),
+                context.getResponse().getStatus());
+        // reset response for future requests from client
+        context.setResponse(null);
     }
 
     @Override
     public void cleanupConnections() {
         clientSockets.keySet().removeIf(socketChannel -> !socketChannel.isOpen());
-    }
-
-    /*
-    private void handleClient(SelectionKey selectionKey) throws IOException {
-        Path filePath = getFilePath(path);
-        if (Files.exists(filePath)) {
-            String contentType = guessContentType(filePath);
-            sendResponse(client, "200 OK", contentType, Files.readAllBytes(filePath));
-        } else {
-            byte[] notFoundContent = "<h1>Not found</h1>".getBytes();
-            sendResponse(client, "404 Not Found", "text/html", notFoundContent);
-        }
-    }
-    */
-
-    private Path getFilePath(String path) {
-        if ("/".equals(path)) {
-            path = "/index.html"; // TODO: default root resource configuration parameter
-        }
-
-        return Paths.get(path); // TODO: configurable path
     }
 }

@@ -1,15 +1,15 @@
 package com.github.httpserver.file;
 
+import org.tinylog.Logger;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 
 public class IfModifiedSinceValidator implements FileValidator {
@@ -27,14 +27,11 @@ public class IfModifiedSinceValidator implements FileValidator {
 
         ZonedDateTime zonedModificationDate = fileTime.toInstant().atZone(ZoneId.systemDefault());
 
-        try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
-            Date queryDate = dateFormat.parse(criteria);
-            ZonedDateTime zonedQueryDate = queryDate.toInstant().atZone(ZoneOffset.UTC);
+        TemporalAccessor queryDate = DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.US).parse(criteria);
+        ZonedDateTime zonedQueryDate = ZonedDateTime.from(queryDate);
 
-            return zonedModificationDate.isAfter(zonedQueryDate);
-        } catch (ParseException e) {
-            throw new IOException(e);
-        }
+        Logger.warn(zonedQueryDate.getZone());
+
+        return zonedModificationDate.isAfter(zonedQueryDate);
     }
 }

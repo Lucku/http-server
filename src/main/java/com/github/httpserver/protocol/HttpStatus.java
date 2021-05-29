@@ -9,7 +9,6 @@ public enum HttpStatus {
     HTTP_METHOD_NOT_ALLOWED(405, "Method Not Allowed"),
     HTTP_PRECONDITION_FAILED(412, "Precondition Failed"),
     HTTP_INTERNAL_SERVER_ERROR(500, "Internal Server Error");
-    // TODO Add the rest
 
     private final int statusCode;
     private final String label;

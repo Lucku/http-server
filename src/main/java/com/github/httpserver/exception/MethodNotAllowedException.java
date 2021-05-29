@@ -18,10 +18,11 @@ public class MethodNotAllowedException extends HttpException {
 
     @Override
     public HttpResponse toHttpResponse() {
-        HttpResponseBuilder responseBuilder = new HttpResponseBuilder()
+        return new HttpResponseBuilder()
                 .setStatus(status)
                 .appendBodyAsHTML("h1", status.toString())
-                .appendBodyAsHTML("p", "The HTTP method is not supported by the resource");
-        return responseBuilder.build();
+                .appendBodyAsHTML("p", "The HTTP method is not supported by the resource")
+                .appendContentLengthHeader()
+                .build();
     }
 }

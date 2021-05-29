@@ -4,14 +4,14 @@ import java.util.Map;
 
 public class HttpRequest {
 
-    private final String method;
+    private final HttpMethod method;
     private final String version;
     private final String path;
     private final Map<String, String> headers;
 
     private HttpResponse response;
 
-    public HttpRequest(String method, String version, String path, Map<String, String> headers,
+    public HttpRequest(HttpMethod method, String version, String path, Map<String, String> headers,
                        HttpResponse response) {
         this.method = method;
         this.version = version;
@@ -20,7 +20,7 @@ public class HttpRequest {
         this.response = response;
     }
 
-    public String getMethod() {
+    public HttpMethod getMethod() {
         return method;
     }
 

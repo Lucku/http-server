@@ -15,10 +15,11 @@ public class PreconditionFailedException extends HttpException {
 
     @Override
     public HttpResponse toHttpResponse() {
-        HttpResponseBuilder responseBuilder = new HttpResponseBuilder()
+        return new HttpResponseBuilder()
                 .setStatus(status)
                 .appendBodyAsHTML("h1", status.toString())
-                .appendBodyAsHTML("p", "The requested resource doesn't match resource conditions");
-        return responseBuilder.build();
+                .appendBodyAsHTML("p", "The requested resource doesn't match resource conditions")
+                .appendContentLengthHeader()
+                .build();
     }
 }

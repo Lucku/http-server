@@ -1,5 +1,6 @@
 package com.github.httpserver.protocol;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 public class HttpResponse {
@@ -7,9 +8,9 @@ public class HttpResponse {
     private final String version;
     private final HttpStatus status;
     private final Map<String, String> headers;
-    private final String body;
+    private final byte[] body;
 
-    public HttpResponse(String version, HttpStatus status, Map<String, String> headers, String body) {
+    public HttpResponse(String version, HttpStatus status, Map<String, String> headers, byte[] body) {
         this.version = version;
         this.status = status;
         this.headers = headers;
@@ -28,12 +29,7 @@ public class HttpResponse {
         return headers;
     }
 
-    public String getBody() {
-        return body;
-    }
-
-    @Override
-    public String toString() {
+    public ByteBuffer toByteBuffer() {
 
         StringBuilder responseBuilder = new StringBuilder();
 
@@ -46,19 +42,25 @@ public class HttpResponse {
             responseBuilder.append(headerLine);
         }
 
+        responseBuilder.append("\r\n");
+
+        int bodyLength = 0;
+
         if (body != null) {
-            responseBuilder.append("\r\n");
-            responseBuilder.append(body);
+            bodyLength = body.length;
         }
 
-        return responseBuilder.toString();
+        byte[] response = responseBuilder.toString().getBytes();
+        byte[] allByteArray = new byte[response.length + bodyLength];
+        ByteBuffer buff = ByteBuffer.wrap(allByteArray);
+        buff.put(response);
 
-        /* TODO: Delete
-        return "HTTP/1.1 200 OK\r\n" +
-                "ContentType: " + "text/html" + "\r\n" +
-                "\r\n" +
-                "<h1>Test</h1>" +
-                "\r\n\r\n";
-                */
+        if (body != null) {
+            buff.put(body);
+        }
+
+        buff.flip();
+
+        return buff;
     }
 }

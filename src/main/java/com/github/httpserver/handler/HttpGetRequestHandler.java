@@ -1,6 +1,7 @@
 package com.github.httpserver.handler;
 
 import com.github.httpserver.configuration.Configuration;
+import com.github.httpserver.exception.BadRequestException;
 import com.github.httpserver.exception.HttpException;
 import com.github.httpserver.exception.InternalServerErrorException;
 import com.github.httpserver.exception.NotFoundException;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.DateTimeException;
 
 public class HttpGetRequestHandler implements HttpRequestHandler {
 
@@ -44,7 +46,7 @@ public class HttpGetRequestHandler implements HttpRequestHandler {
         Path filePath = Paths.get(config.getSourcePath(), requestPath);
 
         if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
-            throw new NotFoundException(String.format("Resource %s can not be found", filePath));
+            throw new NotFoundException(String.format("Resource %s can not be found", requestPath));
         }
 
         try {
@@ -58,10 +60,10 @@ public class HttpGetRequestHandler implements HttpRequestHandler {
                             .build();
                 }
 
-                String fileContents = Files.readString(fileInfo.getFilePath());
+                byte[] fileContents = Files.readAllBytes(fileInfo.getFilePath());
 
                 return new HttpResponseBuilder()
-                        .appendBody(fileContents)
+                        .setBody(fileContents)
                         .appendHeader(HttpHeader.HEADER_CONTENT_TYPE, fileInfo.getContentType())
                         .appendETagHeader()
                         .appendContentLengthHeader()
@@ -70,8 +72,10 @@ public class HttpGetRequestHandler implements HttpRequestHandler {
             }
 
         } catch (IOException e) {
-            Logger.error("Unable to read requested file {}", filePath, e);
+            Logger.error(e, "Unable to read requested file {}", filePath);
             throw new InternalServerErrorException(e);
+        } catch (DateTimeException e) {
+            throw new BadRequestException(e.getMessage(), e);
         }
 
         throw new PreconditionFailedException();

@@ -1,10 +1,12 @@
-package com.github.httpserver.protocol;
+package com.github.httpserver.helper;
 
 import com.github.httpserver.exception.BadRequestException;
 import com.github.httpserver.exception.HttpException;
+import com.github.httpserver.protocol.HttpMethod;
+import com.github.httpserver.protocol.HttpRequest;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -27,50 +29,63 @@ public class HttpRequestParser {
                 HeaderEntry headerEntry = parseHeaderEntry(line);
                 headers.put(headerEntry.getKey(), headerEntry.getValue());
             }
-        } catch (IOException e) {
-            // TODO: Proper exception handling
-            throw new BadRequestException("Bad Request", e);
+        } catch (ParseException e) {
+            throw new BadRequestException(e.getMessage(), e);
         }
 
         return new HttpRequest(requestLine.getMethod(), requestLine.getVersion(),
                 requestLine.getPath(), headers, null);
     }
 
-    private RequestLine parseRequestLine(String line) throws IOException {
+    private RequestLine parseRequestLine(String line) throws ParseException {
         StringTokenizer tokenizer = new StringTokenizer(line, " ");
-        String method = tokenizer.nextToken();
+        String methodString = tokenizer.nextToken();
         String path = tokenizer.nextToken();
         String version = tokenizer.nextToken();
 
         if (tokenizer.hasMoreTokens()) {
-            throw new IOException("Invalid request line format");
+            throw new ParseException("Request line is longer than expected", 0);
+        }
+
+        // strip query params from path
+        int index;
+        if ((index = path.indexOf("?")) != -1) {
+            path = path.substring(0, index);
+        }
+
+        HttpMethod method;
+
+        try {
+            method = HttpMethod.valueOf(methodString);
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(e.getMessage(), 0);
         }
 
         return new RequestLine(method, path, version);
     }
 
-    private HeaderEntry parseHeaderEntry(String line) throws IOException {
-        String[] headerEntry = line.split(":");
+    private HeaderEntry parseHeaderEntry(String line) throws ParseException {
+        String[] headerEntry = line.split(":", 2);
 
         if (headerEntry.length < 2) {
-            throw new IOException("Invalid header entry format");
+            throw new ParseException(String.format("Invalid header entry format %s (expected Key: Value)", line), 0);
         }
 
         return new HeaderEntry(headerEntry[0], headerEntry[1].trim());
     }
 
     private static class RequestLine {
-        String method;
+        HttpMethod method;
         String path;
         String version;
 
-        public RequestLine(String method, String path, String version) {
+        public RequestLine(HttpMethod method, String path, String version) {
             this.method = method;
             this.path = path;
             this.version = version;
         }
 
-        public String getMethod() {
+        public HttpMethod getMethod() {
             return method;
         }
 

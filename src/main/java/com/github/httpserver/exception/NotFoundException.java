@@ -23,10 +23,11 @@ public class NotFoundException extends HttpException {
 
     @Override
     public HttpResponse toHttpResponse() {
-        HttpResponseBuilder responseBuilder = new HttpResponseBuilder();
-        responseBuilder.setStatus(status);
-        responseBuilder.appendBodyAsHTML("h1", status.toString());
-        responseBuilder.appendBodyAsHTML("p", getMessage());
-        return responseBuilder.build();
+        return new HttpResponseBuilder()
+                .setStatus(status)
+                .appendBodyAsHTML("h1", status.toString())
+                .appendBodyAsHTML("p", getMessage())
+                .appendContentLengthHeader()
+                .build();
     }
 }

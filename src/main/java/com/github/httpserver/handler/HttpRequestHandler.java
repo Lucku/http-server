@@ -5,5 +5,5 @@ import com.github.httpserver.protocol.HttpResponse;
 
 public interface HttpRequestHandler {
 
-    public HttpResponse handleRequest() throws HttpException;
+    HttpResponse handleRequest() throws HttpException;
 }

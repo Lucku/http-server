@@ -1,6 +1,5 @@
 package com.github.httpserver.file;
 
-import com.github.httpserver.helper.HttpUtils;
 import com.github.httpserver.protocol.HttpHeader;
 import com.github.httpserver.protocol.HttpRequest;
 
@@ -8,6 +7,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Map;
 
 public class HttpFileInfoRetriever implements FileInfoRetriever {
@@ -49,7 +51,10 @@ public class HttpFileInfoRetriever implements FileInfoRetriever {
         String contentType = Files.probeContentType(filePath);
 
         FileTime lastModified = Files.getLastModifiedTime(filePath);
-        String formattedTimestamp = HttpUtils.fileTimeToUTCDateString(lastModified);
+
+        DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneOffset.UTC)
+                .withLocale(Locale.US);
+        String formattedTimestamp = formatter.format(lastModified.toInstant());
 
         return new FileInfo(isValid, isModified, contentType, formattedTimestamp, filePath);
     }
