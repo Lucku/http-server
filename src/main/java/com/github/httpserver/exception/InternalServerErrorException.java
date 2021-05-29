@@ -4,12 +4,17 @@ import com.github.httpserver.helper.HttpResponseBuilder;
 import com.github.httpserver.protocol.HttpResponse;
 import com.github.httpserver.protocol.HttpStatus;
 
-public class BadRequestException extends HttpException {
+public class InternalServerErrorException extends HttpException {
 
-    private final HttpStatus status = HttpStatus.HTTP_BAD_REQUEST;
+    private final HttpStatus status = HttpStatus.HTTP_INTERNAL_SERVER_ERROR;
 
-    public BadRequestException(String message, Throwable cause) {
+    // TODO: Check if necessary
+    public InternalServerErrorException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public InternalServerErrorException(Throwable cause) {
+        super(cause);
     }
 
     @Override
@@ -22,7 +27,6 @@ public class BadRequestException extends HttpException {
         HttpResponseBuilder responseBuilder = new HttpResponseBuilder();
         responseBuilder.setStatus(status);
         responseBuilder.appendBodyAsHTML("h1", status.toString());
-        responseBuilder.appendBodyAsHTML("p", getMessage());
         return responseBuilder.build();
     }
 }

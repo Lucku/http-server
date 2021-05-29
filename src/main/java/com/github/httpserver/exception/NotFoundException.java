@@ -4,12 +4,16 @@ import com.github.httpserver.helper.HttpResponseBuilder;
 import com.github.httpserver.protocol.HttpResponse;
 import com.github.httpserver.protocol.HttpStatus;
 
-public class BadRequestException extends HttpException {
+public class NotFoundException extends HttpException {
 
-    private final HttpStatus status = HttpStatus.HTTP_BAD_REQUEST;
+    private final HttpStatus status = HttpStatus.HTTP_NOT_FOUND;
 
-    public BadRequestException(String message, Throwable cause) {
+    public NotFoundException(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public NotFoundException(String message) {
+        super(message);
     }
 
     @Override

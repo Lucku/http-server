@@ -1,5 +1,6 @@
 package com.github.httpserver.server;
 
+import com.github.httpserver.configuration.Configuration;
 import org.tinylog.Logger;
 
 import java.io.IOException;
@@ -15,13 +16,15 @@ public class HttpServer {
 
     private final ClientHandler clientHandler;
 
+    private Configuration config;
     private ServerState serverState;
     private ServerSocketChannel serverSocketChannel;
     private Selector selector;
 
-    public HttpServer() throws IOException {
-        serverState = ServerState.IDLE;
-        clientHandler = new HttpClientHandler();
+    public HttpServer(Configuration config) throws IOException {
+        this.config = config;
+        this.serverState = ServerState.IDLE;
+        this.clientHandler = new HttpClientHandler(config);
 
         try {
             initializeServerSocket();
@@ -37,8 +40,7 @@ public class HttpServer {
         serverSocketChannel.configureBlocking(false);
         int supportedOperations = serverSocketChannel.validOps();
         serverSocketChannel.register(selector, supportedOperations);
-        // TODO: Configure port
-        serverSocketChannel.bind(new InetSocketAddress("localhost", 8080));
+        serverSocketChannel.bind(new InetSocketAddress("localhost", config.getPort()));
     }
 
     public void startServer() {
@@ -47,7 +49,7 @@ public class HttpServer {
             throw new IllegalStateException("The server is already running");
         }
 
-        Logger.info("Started HTTP server on port 8080");
+        Logger.info("Started HTTP server on port {}", config.getPort());
 
         try {
             serverState = ServerState.RUNNING;
@@ -65,35 +67,34 @@ public class HttpServer {
                     }
 
                     try {
-                        if (selectionKey.isAcceptable()) {
-                            // TODO Log new client
-                            SocketChannel clientSocket = serverSocketChannel.accept();
-                            Logger.debug("Established client connection from {}", clientSocket.getRemoteAddress());
-                            clientSocket.configureBlocking(false);
-                            // TODO This is a test
-                            clientSocket.socket().setKeepAlive(true);
-                            clientHandler.acceptClient(clientSocket);
-                            clientSocket.register(selector, SelectionKey.OP_READ);
+                        if (selectionKey.isValid()) {
+                            if (selectionKey.isAcceptable()) {
+                                SocketChannel clientSocket = serverSocketChannel.accept();
+                                clientSocket.configureBlocking(false);
+                                // TODO This is a test, hat scheinbar keine Auswirkungen
+                                clientSocket.socket().setKeepAlive(true);
+                                clientHandler.acceptClient(clientSocket);
+                                clientSocket.register(selector, SelectionKey.OP_READ);
 
-                        } else if (selectionKey.isReadable()) {
-                            SocketChannel clientSocket = (SocketChannel) selectionKey.channel();
-                            clientSocket.configureBlocking(false);
-                            clientHandler.handleRead(clientSocket);
-                            selectionKey.interestOps(SelectionKey.OP_WRITE);
+                            } else if (selectionKey.isReadable()) {
+                                SocketChannel clientSocket = (SocketChannel) selectionKey.channel();
+                                clientSocket.configureBlocking(false);
+                                clientHandler.handleRead(clientSocket);
+                                selectionKey.interestOps(SelectionKey.OP_WRITE);
 
-                        } else if (selectionKey.isWritable()) {
-                            SocketChannel clientSocket = (SocketChannel) selectionKey.channel();
-                            clientHandler.handleWrite(clientSocket);
-                            selectionKey.interestOps(SelectionKey.OP_READ);
-                            clientSocket.close();
+                            } else if (selectionKey.isWritable()) {
+                                SocketChannel clientSocket = (SocketChannel) selectionKey.channel();
+                                clientHandler.handleWrite(clientSocket);
+                                selectionKey.interestOps(SelectionKey.OP_READ);
+                            }
                         }
-                    } catch (IOException e) {
+                    } catch (IOException | IllegalStateException e) {
                         selectionKey.channel().close();
                         selectionKey.cancel();
                     }
 
                     keysIterator.remove();
-                    clientHandler.cleanUp();
+                    clientHandler.cleanupConnections();
                 }
             }
         } catch (IOException e) {

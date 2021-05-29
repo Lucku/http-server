@@ -2,7 +2,7 @@ package com.github.httpserver.protocol;
 
 import java.util.Map;
 
-public class HttpRequestContext {
+public class HttpRequest {
 
     private final String method;
     private final String version;
@@ -11,8 +11,8 @@ public class HttpRequestContext {
 
     private HttpResponse response;
 
-    public HttpRequestContext(String method, String version, String path, Map<String, String> headers,
-                              HttpResponse response) {
+    public HttpRequest(String method, String version, String path, Map<String, String> headers,
+                       HttpResponse response) {
         this.method = method;
         this.version = version;
         this.path = path;

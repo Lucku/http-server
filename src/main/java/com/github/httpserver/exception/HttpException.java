@@ -1,6 +1,7 @@
 package com.github.httpserver.exception;
 
 import com.github.httpserver.protocol.HttpResponse;
+import com.github.httpserver.protocol.HttpStatus;
 
 public abstract class HttpException extends Exception {
 
@@ -8,7 +9,19 @@ public abstract class HttpException extends Exception {
         super(message, cause);
     }
 
-    public abstract int getHttpStatusCode();
+    public HttpException(Throwable cause) {
+        super(cause);
+    }
 
-    public abstract HttpResponse getHttpResponse();
+    public HttpException() {
+        super();
+    }
+
+    public HttpException(String message) {
+        super(message);
+    }
+
+    public abstract HttpStatus getHttpStatus();
+
+    public abstract HttpResponse toHttpResponse();
 }

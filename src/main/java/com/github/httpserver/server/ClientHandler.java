@@ -9,10 +9,9 @@ public interface ClientHandler {
 
     void handleWrite(WritableByteChannel client) throws IOException;
 
-    // TODO: Relevant for keep-alive?
-    void acceptClient(SocketChannel client);
+    void acceptClient(SocketChannel client) throws IOException;
 
     void handleRead(ReadableByteChannel client) throws IOException;
 
-    void cleanUp();
+    void cleanupConnections();
 }

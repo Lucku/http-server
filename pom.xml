@@ -14,6 +14,7 @@
         <junit.version>5.7.2</junit.version>
         <mockito.version>3.10.0</mockito.version>
         <tinylog.version>2.3.1</tinylog.version>
+        <snakeyaml.version>1.28</snakeyaml.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -88,6 +89,11 @@
             <groupId>org.tinylog</groupId>
             <artifactId>tinylog-impl</artifactId>
             <version>${tinylog.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>

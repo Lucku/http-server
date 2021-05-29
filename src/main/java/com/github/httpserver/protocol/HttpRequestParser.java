@@ -12,7 +12,7 @@ import java.util.StringTokenizer;
 
 public class HttpRequestParser {
 
-    public HttpRequestContext parseRequest(byte[] rawRequest) throws HttpException {
+    public HttpRequest parseRequest(byte[] rawRequest) throws HttpException {
 
         Scanner scanner = new Scanner(new ByteArrayInputStream(rawRequest));
 
@@ -32,7 +32,7 @@ public class HttpRequestParser {
             throw new BadRequestException("Bad Request", e);
         }
 
-        return new HttpRequestContext(requestLine.getMethod(), requestLine.getVersion(),
+        return new HttpRequest(requestLine.getMethod(), requestLine.getVersion(),
                 requestLine.getPath(), headers, null);
     }
 

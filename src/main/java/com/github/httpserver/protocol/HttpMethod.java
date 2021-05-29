@@ -6,7 +6,8 @@ package com.github.httpserver.protocol;
  * @see <a href=https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html>Information about
  * request methods</a>
  */
-public class HttpMethod {
+// TODO: Refactor to enum
+public final class HttpMethod {
     /**
      * Constant for the name of the HTTP GET method
      */
