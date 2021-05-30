@@ -2,7 +2,11 @@ package com.github.httpserver.protocol;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Objects;
 
+/**
+ * HttpResponse represents the model of an HTTP response.
+ */
 public class HttpResponse {
 
     private final String version;
@@ -10,25 +14,55 @@ public class HttpResponse {
     private final Map<String, String> headers;
     private final byte[] body;
 
+    /**
+     * Constructs an HTTP response model by taking all the relevant information needed to construct a response.
+     *
+     * @param version the HTTP version entry as defined in the request.
+     * @param status  the HTTP response status. See {@link HttpStatus} for possible values.
+     * @param headers a map of all response header entries.
+     * @param body    the response body as byte array.
+     * @throws NullPointerException if either HTTP version, status or headers are null values.
+     */
     public HttpResponse(String version, HttpStatus status, Map<String, String> headers, byte[] body) {
-        this.version = version;
-        this.status = status;
-        this.headers = headers;
+        this.version = Objects.requireNonNull(version);
+        this.status = Objects.requireNonNull(status);
+        this.headers = Objects.requireNonNull(headers);
         this.body = body;
     }
 
+    /**
+     * Returns the HTTP version entry as defined in the request.
+     *
+     * @return the HTTP version string.
+     */
     public String getVersion() {
         return version;
     }
 
+    /**
+     * Returns the HTTP response status.
+     *
+     * @return the response status as enum constant containing status code and reason phrase.
+     */
     public HttpStatus getStatus() {
         return status;
     }
 
+    /**
+     * Returns the map of header entries, organized as headerKey -> headerValue.
+     *
+     * @return the complete map of HTTP response headers.
+     */
     public Map<String, String> getHeaders() {
         return headers;
     }
 
+    /**
+     * Assembles the whole response model into a {@link ByteBuffer} representation that can be utilized as a
+     * transportation format towards a {@link java.nio.channels.SocketChannel} of a TCP client.
+     *
+     * @return a byte buffer containing the correctly formatted HTTP response content.
+     */
     public ByteBuffer toByteBuffer() {
 
         StringBuilder responseBuilder = new StringBuilder();

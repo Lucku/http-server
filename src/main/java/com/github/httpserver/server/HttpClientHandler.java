@@ -19,6 +19,9 @@ import java.nio.channels.WritableByteChannel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * HttpClientHandler is a concrete ClientHandler managing HTTP client connections.
+ */
 class HttpClientHandler implements ClientHandler {
 
     private static final int READ_BUFFER_SIZE = 4096;
@@ -27,17 +30,41 @@ class HttpClientHandler implements ClientHandler {
     private final HttpRequestParser requestParser;
     private final HttpRequestHandlerFactory requestHandlerFactory;
 
+    /**
+     * Constructs a new HttpClientHandler based on an application configuration.
+     *
+     * @param config an instance of the application configuration that is needed in order for the
+     *               client handler to respect user-defined parameters.
+     */
     public HttpClientHandler(Configuration config) {
         clientSockets = new ConcurrentHashMap<>();
         requestParser = new HttpRequestParser();
         requestHandlerFactory = new HttpRequestHandlerFactory(config);
     }
 
+    /**
+     * Handles new client connections by creating new client stacks with empty HTTP context.
+     *
+     * @param client the general channel used for communication with the client.
+     * @throws IOException if the remote address of the client cannot be determined due to connectivity
+     *                     issues.
+     */
+    @Override
     public void acceptClient(SocketChannel client) throws IOException {
         Logger.debug("Established client connection from {}", client.getRemoteAddress());
         clientSockets.put(client, HttpContext.EMPTY_CONTEXT);
     }
 
+    /**
+     * Reads the incoming HTTP request of the client and creates and parses it in order to append
+     * the information to the internally hold client stack. If the client request cannot be read
+     * at this point, an HTTP response is already created and also directly appended for the
+     * future response.
+     *
+     * @param client the readable channel used for incoming communication from the client.
+     * @throws IOException if there are connectivity issues with the client.
+     */
+    @Override
     public void handleRead(ReadableByteChannel client) throws IOException {
 
         HttpContext context = clientSockets.get((SocketChannel) client);
@@ -64,6 +91,18 @@ class HttpClientHandler implements ClientHandler {
         }
     }
 
+    /**
+     * Creates and eventually writes HTTP response to the client. If the client stack already contains
+     * a defined response set by {@link #handleRead(ReadableByteChannel)}}, this response is directly written to the client socket.
+     * If not, a response is created by regularly processing the client's HTTP request. After wiring the
+     * response, the client stack is preserved but only the response object is removed from its stack. That
+     * allows for future requests to be processed over the same socket connection, e.g. when using persistent
+     * connections.
+     *
+     * @param client the writable channel used for outgoing communication with the client.
+     * @throws IOException if there are connectivity issues with the client.
+     */
+    @Override
     public void handleWrite(WritableByteChannel client) throws IOException {
 
         HttpContext context = clientSockets.get((SocketChannel) client);
@@ -99,6 +138,9 @@ class HttpClientHandler implements ClientHandler {
         context.setResponse(null);
     }
 
+    /**
+     * Checks all client stacks for already closed connections and removes them if that is the case.
+     */
     @Override
     public void cleanupConnections() {
         clientSockets.keySet().removeIf(socketChannel -> !socketChannel.isOpen());

@@ -34,7 +34,7 @@ public class HttpRequestParser {
         }
 
         return new HttpRequest(requestLine.getMethod(), requestLine.getVersion(),
-                requestLine.getPath(), headers, null);
+                requestLine.getPath(), headers);
     }
 
     private RequestLine parseRequestLine(String line) throws ParseException {
