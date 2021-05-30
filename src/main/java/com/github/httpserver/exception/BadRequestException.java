@@ -6,7 +6,7 @@ import com.github.httpserver.protocol.HttpStatus;
 
 public class BadRequestException extends HttpException {
 
-    private final HttpStatus status = HttpStatus.HTTP_BAD_REQUEST;
+    private static final HttpStatus STATUS = HttpStatus.HTTP_BAD_REQUEST;
 
     public BadRequestException(String message, Throwable cause) {
         super(message, cause);
@@ -14,14 +14,14 @@ public class BadRequestException extends HttpException {
 
     @Override
     public HttpStatus getHttpStatus() {
-        return status;
+        return STATUS;
     }
 
     @Override
     public HttpResponse toHttpResponse() {
         return new HttpResponseBuilder()
-                .setStatus(status)
-                .appendBodyAsHTML("h1", status.toString())
+                .setStatus(STATUS)
+                .appendBodyAsHTML("h1", STATUS.toString())
                 .appendBodyAsHTML("p", getMessage())
                 .appendContentLengthHeader()
                 .build();

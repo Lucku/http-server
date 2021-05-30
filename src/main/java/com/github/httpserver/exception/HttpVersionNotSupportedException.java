@@ -4,13 +4,9 @@ import com.github.httpserver.helper.HttpResponseBuilder;
 import com.github.httpserver.protocol.HttpResponse;
 import com.github.httpserver.protocol.HttpStatus;
 
-public class MethodNotAllowedException extends HttpException {
+public class HttpVersionNotSupportedException extends HttpException {
 
-    private static final HttpStatus STATUS = HttpStatus.HTTP_METHOD_NOT_ALLOWED;
-
-    public MethodNotAllowedException() {
-        super("The HTTP method is not supported by the resource");
-    }
+    private static final HttpStatus STATUS = HttpStatus.HTTP_VERSION_NOT_SUPPORTED;
 
     @Override
     public HttpStatus getHttpStatus() {
@@ -22,7 +18,6 @@ public class MethodNotAllowedException extends HttpException {
         return new HttpResponseBuilder()
                 .setStatus(STATUS)
                 .appendBodyAsHTML("h1", STATUS.toString())
-                .appendBodyAsHTML("p", getMessage())
                 .appendContentLengthHeader()
                 .build();
     }

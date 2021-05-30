@@ -9,11 +9,23 @@ import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.StringTokenizer;
 
+/**
+ * HttpRequestParser parses a raw HTTP client request creating a request model.
+ */
 public class HttpRequestParser {
 
+    /**
+     * Reads a raw HTTP request and parses it into a HTTP request model. If the request
+     * to be parsed contains a body, it is ignored.
+     *
+     * @param rawRequest the raw HTTP request as byte array.
+     * @return the request model.
+     * @throws HttpException if the client request is malformed.
+     */
     public HttpRequest parseRequest(byte[] rawRequest) throws HttpException {
 
         Scanner scanner = new Scanner(new ByteArrayInputStream(rawRequest));
@@ -29,7 +41,7 @@ public class HttpRequestParser {
                 HeaderEntry headerEntry = parseHeaderEntry(line);
                 headers.put(headerEntry.getKey(), headerEntry.getValue());
             }
-        } catch (ParseException e) {
+        } catch (ParseException | NoSuchElementException e) {
             throw new BadRequestException(e.getMessage(), e);
         }
 
@@ -67,7 +79,7 @@ public class HttpRequestParser {
     private HeaderEntry parseHeaderEntry(String line) throws ParseException {
         String[] headerEntry = line.split(":", 2);
 
-        if (headerEntry.length < 2) {
+        if (headerEntry.length < 2 || headerEntry[0].isEmpty()) {
             throw new ParseException(String.format("Invalid header entry format %s (expected Key: Value)", line), 0);
         }
 

@@ -6,11 +6,7 @@ import com.github.httpserver.protocol.HttpStatus;
 
 public class NotFoundException extends HttpException {
 
-    private final HttpStatus status = HttpStatus.HTTP_NOT_FOUND;
-
-    public NotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    private static final HttpStatus STATUS = HttpStatus.HTTP_NOT_FOUND;
 
     public NotFoundException(String message) {
         super(message);
@@ -18,14 +14,14 @@ public class NotFoundException extends HttpException {
 
     @Override
     public HttpStatus getHttpStatus() {
-        return status;
+        return STATUS;
     }
 
     @Override
     public HttpResponse toHttpResponse() {
         return new HttpResponseBuilder()
-                .setStatus(status)
-                .appendBodyAsHTML("h1", status.toString())
+                .setStatus(STATUS)
+                .appendBodyAsHTML("h1", STATUS.toString())
                 .appendBodyAsHTML("p", getMessage())
                 .appendContentLengthHeader()
                 .build();

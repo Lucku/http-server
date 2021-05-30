@@ -5,20 +5,20 @@ import com.github.httpserver.protocol.HttpStatus;
 
 public abstract class HttpException extends Exception {
 
-    public HttpException(String message, Throwable cause) {
+    protected HttpException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public HttpException(Throwable cause) {
+    protected HttpException(Throwable cause) {
         super(cause);
     }
 
-    public HttpException() {
-        super();
+    protected HttpException(String message) {
+        super(message);
     }
 
-    public HttpException(String message) {
-        super(message);
+    protected HttpException() {
+        super();
     }
 
     public abstract HttpStatus getHttpStatus();

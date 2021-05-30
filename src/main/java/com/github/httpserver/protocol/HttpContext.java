@@ -3,7 +3,7 @@ package com.github.httpserver.protocol;
 /**
  * HttpContext is a utility wrapper around a HTTP request and response pair and serves
  * as a model to hold the context of a specific HTTP exchange. It also provides the utility
- * function {@link #isPersistentConnection()} to obtain information about requested connection
+ * function {@link #isTransientConnection()} to obtain information about requested connection
  * parameters.
  */
 public class HttpContext {
@@ -69,14 +69,14 @@ public class HttpContext {
     }
 
     /**
-     * Determines, based on the request headers, if client requested the current HTTP exchange to be a
-     * persistent connection.
+     * Determines, based on the request headers, if client requested the current HTTP exchange to be
+     * closed. If this function returns false, the connection can be assumed to be persistent.
      *
-     * @return a boolean indicating if a persistent connection was requested by the client.
+     * @return a boolean indicating if a connection close was requested by the client.
      * @see <a href=https://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html>Information about
      * status code definitions</a>
      */
-    public boolean isPersistentConnection() {
+    public boolean isTransientConnection() {
 
         if (request == null) {
             return false;
@@ -84,7 +84,7 @@ public class HttpContext {
 
         if (request.getHeaders().containsKey(HttpHeader.HEADER_CONNECTION)) {
             String connectionParam = request.getHeaders().get(HttpHeader.HEADER_CONNECTION);
-            return connectionParam.equals(HttpHeader.CONNECTION_KEEP_ALIVE);
+            return connectionParam.equals(HttpHeader.CONNECTION_CLOSE);
         }
 
         return false;

@@ -2,6 +2,8 @@ package com.github.httpserver.server;
 
 import com.github.httpserver.configuration.Configuration;
 import com.github.httpserver.exception.HttpException;
+import com.github.httpserver.exception.HttpVersionNotSupportedException;
+import com.github.httpserver.file.HttpFileInfoRetriever;
 import com.github.httpserver.handler.HttpRequestHandler;
 import com.github.httpserver.handler.HttpRequestHandlerFactory;
 import com.github.httpserver.helper.HttpRequestParser;
@@ -85,6 +87,11 @@ class HttpClientHandler implements ClientHandler {
         try {
             HttpRequest request = requestParser.parseRequest(readBuffer.array());
             context.setRequest(request);
+
+            if (!request.getVersion().equals(ServerConstants.SUPPORTED_HTTP_VERSION)) {
+                throw new HttpVersionNotSupportedException();
+            }
+
             Logger.debug("Received {} request at path {}", request.getMethod(), request.getPath());
         } catch (HttpException e) {
             context.setResponse(e.toHttpResponse());
@@ -114,7 +121,8 @@ class HttpClientHandler implements ClientHandler {
         if (context.getResponse() == null) {
             try {
                 HttpRequestHandler requestHandler = requestHandlerFactory.createHttpRequestHandler(context.getRequest());
-                HttpResponse response = requestHandler.handleRequest();
+                HttpResponse response = requestHandler.handleRequest(context.getRequest(),
+                        new HttpFileInfoRetriever(context.getRequest().getHeaders()));
                 context.setResponse(response);
             } catch (HttpException e) {
                 context.setResponse(e.toHttpResponse());
@@ -122,10 +130,10 @@ class HttpClientHandler implements ClientHandler {
         }
 
         // set connection header based on client request
-        if (context.isPersistentConnection()) {
-            context.getResponse().getHeaders().put(HttpHeader.HEADER_CONNECTION, HttpHeader.CONNECTION_KEEP_ALIVE);
-        } else {
+        if (context.isTransientConnection()) {
             context.getResponse().getHeaders().put(HttpHeader.HEADER_CONNECTION, HttpHeader.CONNECTION_CLOSE);
+        } else {
+            context.getResponse().getHeaders().put(HttpHeader.HEADER_CONNECTION, HttpHeader.CONNECTION_KEEP_ALIVE);
         }
 
         ByteBuffer writeBuffer = context.getResponse().toByteBuffer();

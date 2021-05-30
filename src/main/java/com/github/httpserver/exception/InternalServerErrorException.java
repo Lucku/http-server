@@ -6,7 +6,7 @@ import com.github.httpserver.protocol.HttpStatus;
 
 public class InternalServerErrorException extends HttpException {
 
-    private final HttpStatus status = HttpStatus.HTTP_INTERNAL_SERVER_ERROR;
+    private static final HttpStatus STATUS = HttpStatus.HTTP_INTERNAL_SERVER_ERROR;
 
     public InternalServerErrorException(Throwable cause) {
         super(cause);
@@ -14,14 +14,14 @@ public class InternalServerErrorException extends HttpException {
 
     @Override
     public HttpStatus getHttpStatus() {
-        return status;
+        return STATUS;
     }
 
     @Override
     public HttpResponse toHttpResponse() {
         return new HttpResponseBuilder()
-                .setStatus(status)
-                .appendBodyAsHTML("h1", status.toString())
+                .setStatus(STATUS)
+                .appendBodyAsHTML("h1", STATUS.toString())
                 .appendContentLengthHeader()
                 .build();
     }

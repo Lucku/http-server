@@ -58,6 +58,15 @@ public class HttpResponse {
     }
 
     /**
+     * Returns the HTTP response body.
+     *
+     * @return the body as a raw byte array.
+     */
+    public byte[] getBody() {
+        return body;
+    }
+
+    /**
      * Assembles the whole response model into a {@link ByteBuffer} representation that can be utilized as a
      * transportation format towards a {@link java.nio.channels.SocketChannel} of a TCP client.
      *

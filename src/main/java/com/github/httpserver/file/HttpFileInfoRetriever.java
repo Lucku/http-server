@@ -1,7 +1,6 @@
 package com.github.httpserver.file;
 
 import com.github.httpserver.protocol.HttpHeader;
-import com.github.httpserver.protocol.HttpRequest;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,15 +10,16 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class HttpFileInfoRetriever implements FileInfoRetriever {
 
     private FileValidator preconditionValidator;
     private FileValidator modificationValidator;
 
-    public HttpFileInfoRetriever(HttpRequest request) {
+    public HttpFileInfoRetriever(Map<String, String> requestHeaders) {
 
-        Map<String, String> requestHeaders = request.getHeaders();
+        Objects.requireNonNull(requestHeaders);
 
         if (requestHeaders.containsKey(HttpHeader.HEADER_IF_MATCH)) {
             this.preconditionValidator = new IfMatchValidator(HttpHeader.HEADER_IF_MATCH);

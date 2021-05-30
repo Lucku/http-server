@@ -35,10 +35,13 @@ public enum HttpStatus {
     /**
      * Constant for HTTP 500 Internal Server Error.
      */
-    HTTP_INTERNAL_SERVER_ERROR(500, "Internal Server Error");
+    HTTP_INTERNAL_SERVER_ERROR(500, "Internal Server Error"),
+    /**
+     * Constant for HTTP 505 HTTP Version Not Supported.
+     */
+    HTTP_VERSION_NOT_SUPPORTED(505, "HTTP Version Not Supported");
 
     private final int statusCode;
-
     private final String reasonPhrase;
 
     /**

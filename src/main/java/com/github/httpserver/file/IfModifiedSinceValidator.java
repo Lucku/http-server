@@ -14,23 +14,30 @@ import java.util.Locale;
 
 public class IfModifiedSinceValidator implements FileValidator {
 
-    private final String criteria;
+    private final String criterion;
 
     public IfModifiedSinceValidator(String criteria) {
-        this.criteria = criteria;
+        this.criterion = criteria;
     }
 
     @Override
     public boolean isValidFile(Path filePath) throws IOException {
 
-        FileTime fileTime = Files.getLastModifiedTime(filePath);
+        FileTime fileTime;
+
+        try {
+            fileTime = Files.getLastModifiedTime(filePath);
+        } catch (IOException e) {
+            Logger.warn(e, "Failed to determine last modified time of file {} while validating " +
+                    "If-Modified-Since header", filePath);
+            throw new IOException(e);
+        }
+
 
         ZonedDateTime zonedModificationDate = fileTime.toInstant().atZone(ZoneId.systemDefault());
 
-        TemporalAccessor queryDate = DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.US).parse(criteria);
+        TemporalAccessor queryDate = DateTimeFormatter.RFC_1123_DATE_TIME.withLocale(Locale.US).parse(criterion);
         ZonedDateTime zonedQueryDate = ZonedDateTime.from(queryDate);
-
-        Logger.warn(zonedQueryDate.getZone());
 
         return zonedModificationDate.isAfter(zonedQueryDate);
     }

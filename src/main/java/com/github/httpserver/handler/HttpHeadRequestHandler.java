@@ -8,13 +8,12 @@ import com.github.httpserver.exception.NotFoundException;
 import com.github.httpserver.exception.PreconditionFailedException;
 import com.github.httpserver.file.FileInfo;
 import com.github.httpserver.file.FileInfoRetriever;
-import com.github.httpserver.file.HttpFileInfoRetriever;
 import com.github.httpserver.helper.HttpResponseBuilder;
-import com.github.httpserver.helper.HttpUtils;
 import com.github.httpserver.protocol.HttpHeader;
 import com.github.httpserver.protocol.HttpRequest;
 import com.github.httpserver.protocol.HttpResponse;
 import com.github.httpserver.protocol.HttpStatus;
+import com.github.httpserver.server.ServerConstants;
 import org.tinylog.Logger;
 
 import java.io.IOException;
@@ -23,21 +22,40 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.time.DateTimeException;
+import java.util.Objects;
 
+/**
+ * HttpGetRequestHandler is a concrete request handler for HTTP HEAD requests.
+ */
 public class HttpHeadRequestHandler implements HttpRequestHandler {
 
-    private final HttpRequest request;
-    private final FileInfoRetriever fileRetriever;
     private final Configuration config;
 
-    public HttpHeadRequestHandler(HttpRequest request, Configuration config) {
-        this.request = request;
-        this.config = config;
-        this.fileRetriever = new HttpFileInfoRetriever(request);
+    /**
+     * Constructs a new HTTP HEAD request handler by taking the application configuration.
+     *
+     * @param config the application configuration.
+     */
+    public HttpHeadRequestHandler(Configuration config) {
+        this.config = Objects.requireNonNull(config);
     }
 
+    /**
+     * Creates a response to a HTTP HEAD request. The resource is retrieved from the file system
+     * and the response is built by putting all relevant information about the resource into the response
+     * header. The file contents are not included in the response.
+     * <p>
+     * In case that the requested resource has not been modified since the last request by the client
+     * (determined via 'If-None-Match' and 'If-Modified-Since' headers, a '304 Not Modified' response is
+     * returned.
+     *
+     * @param request       the request to be handled.
+     * @param fileRetriever a file retriever to obtain relevant metadata about the requested resource.
+     * @return the HEAD response to the client.
+     * @throws HttpException if an error occurs during the processing of the request.
+     */
     @Override
-    public HttpResponse handleRequest() throws HttpException {
+    public HttpResponse handleRequest(HttpRequest request, FileInfoRetriever fileRetriever) throws HttpException {
 
         String requestPath = request.getPath();
 
@@ -45,7 +63,7 @@ public class HttpHeadRequestHandler implements HttpRequestHandler {
             requestPath = config.getRootResource();
         }
 
-        Path filePath = Paths.get(config.getSourcePath(), requestPath);
+        Path filePath = ServerConstants.getCurrentFilePath().resolve(Paths.get(config.getSourcePath(), requestPath));
 
         if (!Files.exists(filePath) || Files.isDirectory(filePath)) {
             throw new NotFoundException(String.format("Resource %s can not be found", requestPath));
@@ -66,7 +84,7 @@ public class HttpHeadRequestHandler implements HttpRequestHandler {
 
                 return new HttpResponseBuilder()
                         .appendHeader(HttpHeader.HEADER_CONTENT_TYPE, fileInfo.getContentType())
-                        .appendHeader(HttpHeader.HEADER_ETAG, HttpUtils.calculateETag(fileContents))
+                        .appendHeader(HttpHeader.HEADER_ETAG, ServerConstants.calculateETag(fileContents))
                         .appendHeader(HttpHeader.HEADER_CONTENT_LENGTH, String.valueOf(fileContents.length))
                         .appendHeader(HttpHeader.HEADER_LAST_MODIFIED, fileInfo.getLastModified())
                         .build();

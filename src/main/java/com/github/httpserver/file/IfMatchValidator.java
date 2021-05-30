@@ -1,6 +1,6 @@
 package com.github.httpserver.file;
 
-import com.github.httpserver.helper.HttpUtils;
+import com.github.httpserver.server.ServerConstants;
 import org.tinylog.Logger;
 
 import java.io.IOException;
@@ -11,30 +11,30 @@ import java.util.StringTokenizer;
 
 public class IfMatchValidator implements FileValidator {
 
-    private final String criteria;
+    private final String criterion;
 
     public IfMatchValidator(String criteria) {
-        this.criteria = criteria;
+        this.criterion = criteria;
     }
 
     @Override
     public boolean isValidFile(Path filePath) throws IOException {
 
         // ETag "*" always matches
-        if (criteria.equals("*")) {
+        if (criterion.equals("*")) {
             return true;
         }
 
         String fileETag;
         try {
             byte[] fileContents = Files.readAllBytes(filePath);
-            fileETag = HttpUtils.calculateETag(fileContents);
+            fileETag = ServerConstants.calculateETag(fileContents);
         } catch (IOException | NoSuchAlgorithmException e) {
             Logger.warn(e, "Failed to calculate ETag of file {} while validating If-Match header", filePath);
             throw new IOException(e);
         }
 
-        StringTokenizer tokenizer = new StringTokenizer(criteria, ",");
+        StringTokenizer tokenizer = new StringTokenizer(criterion, ",");
         while (tokenizer.hasMoreTokens()) {
 
             String queryETag = tokenizer.nextToken().trim();

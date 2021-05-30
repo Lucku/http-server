@@ -1,10 +1,12 @@
 package com.github.httpserver.configuration;
 
+import com.github.httpserver.server.ServerConstants;
 import org.tinylog.Logger;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 
 public class Configuration {
@@ -36,12 +38,11 @@ public class Configuration {
         Map<String, Object> values;
 
         try {
-            FileInputStream fileInputStream = new FileInputStream(filePath);
+            BufferedReader fileReader = Files.newBufferedReader(ServerConstants.getCurrentFilePath().resolve(filePath));
             Yaml yaml = new Yaml();
-            values = yaml.load(fileInputStream);
-
-        } catch (FileNotFoundException e) {
-            Logger.warn("Unable to find configuration file - using default values");
+            values = yaml.load(fileReader);
+        } catch (IOException e) {
+            Logger.warn("Unable to read configuration file - using default values");
             return DEFAULT;
         }
 

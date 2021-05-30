@@ -24,6 +24,8 @@ import java.util.Set;
  * (2) running: {@link #startServer()} was called (can transition to state (3))
  * (3) stopped: {@link #stopServer()} was called either explicitly or implicitly inside of {@link #startServer()}
  * (can transition to state (2))
+ * <p>
+ * This implementation is not thread safe, i.e. the server instance should never be started/stopped concurrently.
  */
 public class HttpServer {
 
@@ -66,16 +68,17 @@ public class HttpServer {
         serverSocketChannel.configureBlocking(false);
         int supportedOperations = serverSocketChannel.validOps();
         serverSocketChannel.register(selector, supportedOperations);
-        serverSocketChannel.bind(new InetSocketAddress("localhost", config.getPort()));
+        serverSocketChannel.bind(new InetSocketAddress(config.getPort()));
     }
 
     /**
      * Starts the server's main loop that is listening and processing TCP client connections. This
      * method will fail if the server is already in a running state, i.e. if the method was called
-     * before and the server has not been stopped since. In case that the server's main loop is
-     * interrupted by a critical exception, the latter is handled silently and the server stopped
-     * gracefully. For that reason it is recommended to check whether the server is running using
-     * {@link #isRunning()} before calling this method if there is the risk of calling subsequently.
+     * before and the server has not been stopped since, or if it was stopped. In case that the
+     * server's main loop is interrupted by a critical exception, the latter is handled silently
+     * and the server stopped gracefully. For that reason it is recommended to check whether the server
+     * is running using {@link #isRunning()} or {@link #isStopped()} before calling this method if there
+     * is the risk of calling it subsequently.
      *
      * @throws IllegalStateException if the server is already actively running.
      */
@@ -85,13 +88,22 @@ public class HttpServer {
             throw new IllegalStateException("The server is already running");
         }
 
+        if (serverState == ServerState.STOPPED) {
+            throw new IllegalStateException("The server is stopped");
+        }
+
         Logger.info("Started HTTP server on port {}", config.getPort());
 
-        try {
-            serverState = ServerState.RUNNING;
+        serverState = ServerState.RUNNING;
 
+        try {
             while (!isStopped()) {
                 selector.select();
+
+                if (!selector.isOpen()) {
+                    break;
+                }
+
                 Set<SelectionKey> selectionKeySet = selector.selectedKeys();
                 Iterator<SelectionKey> keysIterator = selectionKeySet.iterator();
 
@@ -145,6 +157,7 @@ public class HttpServer {
         try {
             serverSocketChannel.close();
             selector.close();
+            clientHandler.cleanupConnections();
         } catch (IOException e) {
             Logger.error("Failed to stop the server", e);
         }

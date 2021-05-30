@@ -6,19 +6,23 @@ import com.github.httpserver.protocol.HttpStatus;
 
 public class PreconditionFailedException extends HttpException {
 
-    private final HttpStatus status = HttpStatus.HTTP_PRECONDITION_FAILED;
+    private static final HttpStatus STATUS = HttpStatus.HTTP_PRECONDITION_FAILED;
+
+    public PreconditionFailedException() {
+        super("The resource doesn't match one of the request conditions");
+    }
 
     @Override
     public HttpStatus getHttpStatus() {
-        return status;
+        return STATUS;
     }
 
     @Override
     public HttpResponse toHttpResponse() {
         return new HttpResponseBuilder()
-                .setStatus(status)
-                .appendBodyAsHTML("h1", status.toString())
-                .appendBodyAsHTML("p", "The requested resource doesn't match resource conditions")
+                .setStatus(STATUS)
+                .appendBodyAsHTML("h1", STATUS.toString())
+                .appendBodyAsHTML("p", getMessage())
                 .appendContentLengthHeader()
                 .build();
     }
