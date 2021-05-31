@@ -9,14 +9,31 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.StringTokenizer;
 
+/**
+ * IfMatchValidator is a concrete file validator that evaluates the 'If-Match' condition
+ * of an HTTP request, meaning that the file's calculated ETag has to match one of the
+ * given ones from the request header value.
+ */
 public class IfMatchValidator implements FileValidator {
 
     private final String criterion;
 
-    public IfMatchValidator(String criteria) {
-        this.criterion = criteria;
+    /**
+     * Constructs an If-Match validator with the given criterion.
+     *
+     * @param criterion the raw value of the 'If-Match' HTTP request header entry.
+     */
+    public IfMatchValidator(String criterion) {
+        this.criterion = criterion;
     }
 
+    /**
+     * Evaluates the 'If-Match' condition on the file at the given path.
+     *
+     * @param filePath the path to the file on the local file system.
+     * @return a boolean indicating if the condition is fulfilled.
+     * @throws IOException if the given file cannot be read.
+     */
     @Override
     public boolean isValidFile(Path filePath) throws IOException {
 

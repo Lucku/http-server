@@ -12,11 +12,27 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * HTTPFileInfoRetriever retrieves information about files from a HTTP view point, meaning
+ * that validation conditions are applied based on conditional request headers.
+ *
+ * @see <a href=https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>Information about
+ * conditional headers</a>
+ */
 public class HttpFileInfoRetriever implements FileInfoRetriever {
 
     private FileValidator preconditionValidator;
     private FileValidator modificationValidator;
 
+    /**
+     * Constructs an HTTP file info retriever by taking the header entries of an HTTP request.
+     * Validation conditions are created based on supported conditional request headers. These
+     * are 'If-Match', 'If-None-Match' and 'If-Modified-Since'. If 'If-None-Match' is defined
+     * in the header entries, an also present 'If-Modified-Since' condition is ignored.
+     *
+     * @param requestHeaders the complete list of HTTP request headers to be taken into account
+     *                       when creating the file information.
+     */
     public HttpFileInfoRetriever(Map<String, String> requestHeaders) {
 
         Objects.requireNonNull(requestHeaders);
@@ -34,6 +50,9 @@ public class HttpFileInfoRetriever implements FileInfoRetriever {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public FileInfo retrieveFileInfo(Path filePath) throws IOException {
 
